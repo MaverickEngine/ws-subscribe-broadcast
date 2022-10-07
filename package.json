@@ -1,0 +1,28 @@
+{
+    "name": "@mavengine/frontpage_engine-ws",
+    "version": "0.0.1",
+    "description": "Websocket server for the frontpage engine",
+    "main": "index.js",
+    "scripts": {
+        "preinstall": "npm i nodemon -g",
+        "test": "jest",
+        "start": "node index.js",
+        "dev": "nodemon index.js"
+    },
+    "keywords": [
+      "websocket",
+      "frontpageengine",
+      "wordpress",
+      "wordpress-vip"
+    ],
+    "author": "Jason Norwood-Young <jason@10layer.com>",
+    "license": "MIT",
+    "dependencies": {
+      "ws": "^8.9.0",
+      "nodemon": "^2.0.20"
+    },
+    "devDependencies": {
+      "jest": "^29.1.2"
+    }
+  }
+  
