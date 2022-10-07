@@ -4,7 +4,6 @@
     "description": "Simple websocket server lets you subscribe and broadcast",
     "main": "index.js",
     "scripts": {
-        "preinstall": "npm i nodemon -g",
         "start": "node index.js",
         "dev": "nodemon index.js"
     },
