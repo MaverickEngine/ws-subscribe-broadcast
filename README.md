@@ -32,13 +32,27 @@ websocat "ws://localhost:3000/_ws/"
 { "event": "subscribe", "domain": "http://blah.com", "channel": "test" }
 ```
 
+_Note: You can subscribe to multiple domains and channels at once._
+
 ### Send a broadcast
 
 ```javascript
 { "event": "message", "domain": "http://blah.com", "channel": "test", "message": "blah" }
 ```
 
-The broadcast will be echoed back if you've subscribed to it too.
+### Unsubscribe
+
+```javascript
+{ "event": "unsubscribe", "domain": "http://blah.com", "channel": "test" }
+```
+
+## Send a message from outside a websocket
+
+You can send a message to a domain and channel by sending a POST request to the server, using the endpoint `/send`.
+
+```bash
+curl -X POST -d "domain=http://blah.com&channel=test&message=Hello" "http://localhost:3000/send"
+```
 
 ## Wordpress VIP
 
