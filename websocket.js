@@ -1,10 +1,12 @@
-const { WebSocketServer, WebSocket } = require( 'ws' );
+import { WebSocketServer, WebSocket } from 'ws';
+import messages from './messages.js';
+import generate_id from './generate_id.js';
 
 /**
  * A WebSocket server that alerts all connected 
  * clients when a front page is updated.
  */
-class FrontPageEngineSocketServer {
+export class FrontPageEngineSocketServer {
 
 	/**
 	 * WebSocketServer instance.
@@ -27,16 +29,21 @@ class FrontPageEngineSocketServer {
 	 * Handle a newly connected client.
 	 */
 	onConnect( socket, req ) {
-		const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress
-		console.log( `WebSocket connection established from ${ ip }...` );
-
+		socket.ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+		socket.unique_id = generate_id();
+		console.log( `WebSocket connection established from ${ socket.ip }, uid ${ socket.unique_id }...` );
+		socket.send( JSON.stringify( { event: 'connected', message: 'Connected to server', uid: socket.unique_id } ) );
 		socket.on( 'close', this.onClose.bind( this ) );
 		socket.on( 'message', (function(data) {
             try {
 				if (!socket.subscriptions) {
 					socket.subscriptions = [];
 				}
-                const message = JSON.parse(data.toString());
+				const s = data.toString().trim();
+				if (s === '') {
+					return;
+				}
+                const message = JSON.parse(s);
                 if (message.event === 'subscribe') {
                     if (!message.domain || !message.channel) {
                         throw new Error('Invalid subscription');
@@ -51,8 +58,44 @@ class FrontPageEngineSocketServer {
 						return subscription.domain !== message.domain || subscription.channel !== message.channel;
 					});
                 } else if (message.event === "message") {
-                    this.fireMessage(message.domain, message.channel, message.message);
-                }
+					const messageObj = messages.add(message.domain, message.channel, message.message, socket.unique_id);
+					this.fireMessage(messageObj, socket.unique_id);
+                } else if (message.event === "get_since") {
+					console.log('get_since', message.domain, message.channel, message.since);
+					const messagesSince = messages.getSince(message.domain, message.channel, message.since);
+					messagesSince.forEach((messageObj) => {
+						socket.send(JSON.stringify(messageObj));
+					});
+				} else if (message.event === "get_since_date") {
+					console.log('get_since_date', message.domain, message.channel, message.since);
+					const messagesSince = messages.getSince(message.domain, message.channel, new Date(message.since).getTime());
+					messagesSince.forEach((messageObj) => {
+						socket.send(JSON.stringify(messageObj));
+					});
+				} else if (message.event === "get_since_id") {
+					console.log('get_since_id', message.domain, message.channel, message.id);
+					const messagesSince = messages.getSinceId(message.domain, message.channel, message.since_id);
+					messagesSince.forEach((messageObj) => {
+						socket.send(JSON.stringify(messageObj));
+					});
+				} else if (message.event === "get") {
+					console.log('get', message.domain, message.channel);
+					const messagesSince = messages.get(message.domain, message.channel);
+					messagesSince.forEach((messageObj) => {
+						socket.send(JSON.stringify(messageObj));
+					});
+				} else if (message.event === "get_by_id") {
+					const messagesSince = messages.getOne(message.domain, message.channel, message.id);
+					messagesSince.forEach((messageObj) => {
+						socket.send(JSON.stringify(messageObj));
+					});
+				} else if (message.event === "get_by_index") {
+					const messageObj = messages.getByIndex(message.domain, message.channel, message.index);
+					socket.send(JSON.stringify(messageObj));
+				} else if (message.event === "get_latest") {
+					const messageObj = messages.getLatest(message.domain, message.channel);
+					socket.send(JSON.stringify(messageObj));
+				}
             } catch (err) {
                 console.log(err);
             }
@@ -87,21 +130,19 @@ class FrontPageEngineSocketServer {
 		if ( this.wss.clients.size ) {
 			return;
 		}
-
-		console.log( 'No more clients!' );
 	}
 
-	fireMessage( domain, channel, message ) {
+	fireMessage(message) {
 		this.wss.clients.forEach((client) => {
-			if (client.readyState === WebSocket.OPEN && client.subscriptions) {
-				if (client.subscriptions.find((subscription) => {
-					return subscription.domain === domain && subscription.channel === channel;
-				})) {
-					client.send(JSON.stringify(message));
-				}
-			}
+			if (client.readyState !== WebSocket.OPEN) return false;
+			if (!client.subscriptions) return false;
+			if (message.sender === client.unique_id) return false;
+			if (!client.subscriptions.find((subscription) => {
+				return subscription.domain === message.domain && subscription.channel === message.channel;
+			})) return false;
+			message.event = 'message';
+			console.log(`Sending message to ${client.unique_id}...`);
+			client.send(JSON.stringify(message));
 		});
 	}
 }
-
-module.exports = FrontPageEngineSocketServer;

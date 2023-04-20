@@ -1,0 +1,147 @@
+import http from 'http';
+import { parse } from 'querystring';
+import { FrontPageEngineSocketServer } from './websocket.js';
+import messages from './messages.js';
+
+// Create a single, shared WebSocket server.
+const socketServer = new FrontPageEngineSocketServer();
+
+export const server = {
+    sockets: new Set,
+    port: process.env.PORT || 3000,
+    start: function() {
+        this.init();
+        return new Promise( ( resolve, reject ) => {
+            this.app.listen( this.port, () => {
+                console.log( `Server listening on port ${ this.port }...` );
+                resolve();
+            } );
+            this.app.on( 'error', ( err ) => {
+                console.error( err );
+                reject( err );
+            } );
+        } );
+    },
+
+    stop: function() {
+        console.log("Stopping server...");
+        return new Promise( ( resolve, reject ) => {
+            for (const socket of this.sockets) {
+                socket.destroy();
+                this.sockets.delete(socket);
+            }
+        
+          this.app.close( ( err ) => {
+                if ( err ) {
+                    console.error( err );
+                    reject( err );
+                }
+                resolve();
+            } );
+        } );
+    },
+
+    app: http.createServer( ( req, res ) => {
+        const baseUrl = `http://${ req.headers.host }`;
+        const { pathname: requestPath } = new URL( req.url, baseUrl );
+
+        if ( '/' === requestPath && [ 'GET', 'HEAD' ].includes( req.method ) ) {
+            res.writeHead( 200 );
+            res.end( 'Howdy!' );
+            return;
+        }
+
+        /**
+         * An http callback that you can use to send a websocket event to a specific
+         * domain and channel.
+         * 
+         * Test: curl -X POST -d "domain=http://blah.com&channel=test&message=Hello" "http://localhost:3000/send"
+         */
+        if ( '/send' === requestPath && [ 'POST', 'HEAD' ].includes( req.method ) ) {
+            try {
+                let body = '';
+                req.on('data', chunk => {
+                    body += chunk.toString(); // convert Buffer to string
+                });
+                req.on('end', () => {
+                    try {
+                        const { domain, channel, message, uid } = parse(body);
+                        if (!domain || !channel || !message) {
+                            throw new Error('Missing required parameters');
+                        }
+                        const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+                        const sender = uid || ip;
+                        const messageObj = messages.add(domain, channel, message, sender);
+                        console.log( `Sending message to ${ channel } for ${ domain }` );
+                        socketServer.fireMessage(messageObj);
+                        res.end('ok');
+                    } catch (err) {
+                        res.writeHead( 500 );
+                        res.end( err.message || err );
+                    }
+                });
+            } catch ( err ) {
+                res.writeHead( 500 );
+                res.end( 'Internal server error' );
+                return;
+            }
+        }
+
+        /**
+         * Handle health checks
+         * https://docs.wpvip.com/technical-references/vip-platform/node-js/
+         *
+         * This is a requirement for any application running on WordPress VIP:
+         *
+         * - must handle url "/cache-healthcheck?" with trailing question mark
+         * - must respond with a 200 status code
+         * - must send a short response (e.g., "ok")
+         * - must respond immediately, without delay
+         * - must prioritize this above other routes
+         *
+         * Test: curl -v "https://example.com/cache-healthcheck?"
+         */
+        if ( '/cache-healthcheck' === requestPath && [ 'GET', 'HEAD' ].includes( req.method ) ) {
+            res.writeHead( 200 );
+            res.end( 'ok' );
+            return;
+        }
+
+        res.writeHead( 404 );
+        res.end();
+    } ),
+
+    init: function() {
+        this.app.on( 'listening', () => {
+            console.log( 'App is listening on port:', server.PORT );
+            console.log( 'Try this command in another terminal window to open a websocket:' );
+            console.log( `websocat "ws://localhost:${ server.PORT }/_ws/"\n` );
+            console.log( 'Subscribe to a channel:' );
+            console.log( `{ "event": "subscribe", "domain": "http://blah.com", "channel": "test" }\n` );
+            console.log( 'Send a message to a channel:' );
+            console.log( `{ "event": "message", "domain": "http://blah.com", "channel": "test", "message": "Hello" }\n` );
+            console.log( 'Send a message via the http endpoint (in another terminal):' );
+            console.log( `curl -X POST -d "domain=http://blah.com&channel=test&message=Hello" "http://localhost:${ server.PORT }/send"\n` );
+            console.log( 'Unsubscribe from a channel:' );
+            console.log( `{ "event": "unsubscribe", "domain": "http://blah.com", "channel": "test" }\n` );
+        } );
+
+        this.app.on( 'upgrade', ( req, socket, head ) => {
+            const baseUrl = `http://${ req.headers.host }`;
+            const { pathname: requestPath } = new URL( req.url, baseUrl );
+            if ( requestPath.startsWith( '/socket.io/' ) || requestPath.startsWith( '/_ws/' ) ) {
+                socketServer.onConnectionUpgrade( req, socket, head );
+                return;
+            }
+            // WebSocket connections are not supported on VIP at any other path.
+            socket.destroy();
+        } );
+
+        this.app.on('connection', (socket) => {
+            this.sockets.add(socket);
+            this.app.once('close', () => {
+                this.sockets.delete(socket);
+            });
+        });
+    },
+};

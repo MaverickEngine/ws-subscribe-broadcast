@@ -1,25 +1,29 @@
 {
     "name": "@mavengine/ws-subscribe-broadcast",
-    "version": "0.0.2",
+    "version": "0.0.3",
     "description": "Simple websocket server lets you subscribe and broadcast",
     "main": "index.js",
     "scripts": {
         "start": "node index.js",
-        "dev": "nodemon index.js"
+        "dev": "nodemon index.js",
+        "test": "jest --detectOpenHandles"
     },
+    "type": "module",
     "keywords": [
-      "websocket",
-      "frontpageengine",
-      "wordpress",
-      "wordpress-vip"
+        "websocket",
+        "frontpageengine",
+        "wordpress",
+        "wordpress-vip"
     ],
     "author": "Jason Norwood-Young <jason@10layer.com>",
     "license": "MIT",
-    "dependencies": {
-      "ws": "^8.9.0"
-    },
     "devDependencies": {
-      "nodemon": "^2.0.20"
+        "@babel/preset-env": "^7.21.4",
+        "babel-jest": "^29.5.0",
+        "jest": "^29.5.0",
+        "mock-socket": "^9.2.1",
+        "nodemon": "^2.0.20",
+        "ts-jest": "^29.1.0",
+        "ws": "^8.13.0"
     }
-  }
-  
+}

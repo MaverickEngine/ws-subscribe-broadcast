@@ -58,6 +58,10 @@ curl -X POST -d "domain=http://blah.com&channel=test&message=Hello" "http://loca
 
 This app is compatible with the [VIP Go](https://wpvip.com/documentation/vip-go/) platform.
 
+## Changelog
+
+See [CHANGELOG.md](CHANGELOG.md).
+
 ## License
 
 MIT
