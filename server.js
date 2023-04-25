@@ -113,15 +113,15 @@ export const server = {
 
     init: function() {
         this.app.on( 'listening', () => {
-            console.log( 'App is listening on port:', server.PORT );
+            console.log( 'App is listening on port:', server.port );
             console.log( 'Try this command in another terminal window to open a websocket:' );
-            console.log( `websocat "ws://localhost:${ server.PORT }/_ws/"\n` );
+            console.log( `websocat "ws://localhost:${ server.port }/_ws/"\n` );
             console.log( 'Subscribe to a channel:' );
             console.log( `{ "event": "subscribe", "domain": "http://blah.com", "channel": "test" }\n` );
             console.log( 'Send a message to a channel:' );
             console.log( `{ "event": "message", "domain": "http://blah.com", "channel": "test", "message": "Hello" }\n` );
             console.log( 'Send a message via the http endpoint (in another terminal):' );
-            console.log( `curl -X POST -d "domain=http://blah.com&channel=test&message=Hello" "http://localhost:${ server.PORT }/send"\n` );
+            console.log( `curl -X POST -d "domain=http://blah.com&channel=test&message=Hello" "http://localhost:${ server.port }/send"\n` );
             console.log( 'Unsubscribe from a channel:' );
             console.log( `{ "event": "unsubscribe", "domain": "http://blah.com", "channel": "test" }\n` );
         } );
