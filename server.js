@@ -44,7 +44,7 @@ export const server = {
     app: http.createServer( ( req, res ) => {
         const baseUrl = `http://${ req.headers.host }`;
         const { pathname: requestPath } = new URL( req.url, baseUrl );
-
+        console.log( `Request for ${ req.method } ${ requestPath }` );
         if ( '/' === requestPath && [ 'GET', 'HEAD' ].includes( req.method ) ) {
             res.writeHead( 200 );
             res.end( 'Howdy!' );
@@ -55,9 +55,9 @@ export const server = {
          * An http callback that you can use to broadcast a message to a specific
          * domain and channel.
          * 
-         * Test: curl -X POST -d "domain=http://blah.com&channel=test&message=Hello" "http://localhost:3000/send"
+         * Test: curl -X POST -d "domain=http://blah.com&channel=test&message=Hello" "http://localhost:3000/broadcast"
          */
-        if ( '/broadcast' === requestPath && [ 'POST', 'HEAD' ].includes( req.method ) ) {
+        else if ( '/broadcast' === requestPath && [ 'POST' ].includes( req.method ) ) {
             try {
                 let body = '';
                 req.on('data', chunk => {
@@ -72,10 +72,16 @@ export const server = {
                         const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
                         const sender = uid || ip;
                         const messageObj = messages.add(domain, channel, message, sender);
-                        console.log( `Sending message to ${ channel } for ${ domain }` );
-                        socketServer.fireMessage(messageObj);
-                        res.end('ok');
+                        socketServer.broadcastMessage(messageObj);
+                        const response = JSON.stringify({ event: 'broadcast', data: messageObj, domain, channel, status: 'ok' });
+                        res.writeHead(200, {
+                            'Content-Length': Buffer.byteLength( response),
+                            'Content-Type': 'application/json',
+                        });
+                        res.end( response );
+                        console.log(res);
                     } catch (err) {
+                        console.error(err);
                         res.writeHead( 500 );
                         res.end( err.message || err );
                     }
@@ -101,14 +107,14 @@ export const server = {
          *
          * Test: curl -v "https://example.com/cache-healthcheck?"
          */
-        if ( '/cache-healthcheck' === requestPath && [ 'GET', 'HEAD' ].includes( req.method ) ) {
+        else if ( '/cache-healthcheck' === requestPath && [ 'GET', 'HEAD' ].includes( req.method ) ) {
             res.writeHead( 200 );
             res.end( 'ok' );
             return;
+        } else {
+            res.writeHead( 404 );
+            res.end("Not found");
         }
-
-        res.writeHead( 404 );
-        res.end();
     } ),
 
     init: function() {
@@ -121,7 +127,7 @@ export const server = {
             console.log( 'Send a message to a channel:' );
             console.log( `{ "event": "message", "domain": "http://blah.com", "channel": "test", "message": "Hello" }\n` );
             console.log( 'Send a message via the http endpoint (in another terminal):' );
-            console.log( `curl -X POST -d "domain=http://blah.com&channel=test&message=Hello" "http://localhost:${ server.port }/send"\n` );
+            console.log( `curl -X POST -d "domain=http://blah.com&channel=test&message=Hello" "http://localhost:${ server.port }/broadcast"\n` );
             console.log( 'Unsubscribe from a channel:' );
             console.log( `{ "event": "unsubscribe", "domain": "http://blah.com", "channel": "test" }\n` );
         } );
