@@ -2,6 +2,65 @@
 
 This simple websocket server lets you subscribe to a domain and channel, and then lets you send and receive all broadcasts for that domain and channel. 
 
+## Background
+
+This Websocket Server was developed for a Daily Maverick Mavengine project that required multiple users' browsers to remain in sync with each other, either when a user made a change, or when the server made a change. Instead of building a specific solution for that project, we decided to build a generic subscribe-broadcast server that could be used for any project that required this functionality.
+
+## Features
+
+- Multiple sites can use the server by using their own "Domain".
+- Multiple apps can use the server by using their own "Channel".
+- A web browser can subscribe to one or more domains and channels.
+- A browser can send a message that will be broadcast to all the other subscribers on the channel.
+- A server can also send a message for broadcast through a POST request.
+- There is limited history (currently 100 messages) that can be retrieved by a browser.
+
+## Security
+
+*_The system is not secure. Anyone can subscribe to any domain and channel._*
+
+We suggest not posting any data over the websocket. We typically use it to announce that something has changed, but no data as to what exactly has changed. The browser then makes a request to the server to get the latest data.
+
+## Communication model
+
+![Communication model](https://raw.githubusercontent.com/MaverickEngine/ws-subscribe-broadcast/master/docs/wssb.png)
+
+1. A browser connects to the server.
+
+```bash
+websocat "ws://localhost:3000/_ws/"
+```
+
+2. The browser gets a response that it has successfully connected. This inculdes a unique ID for the browser.
+
+```json
+{"event":"connected","message":"Connected to server","uid":"6441066c31e24e0b1a511980"}
+```
+
+3. A browser subscribes to a domain and channel.
+
+```json
+{ "event": "subscribe", "domain": "http://blah.com", "channel": "test" }
+```
+
+4. The browser gets a response that it has successfully subscribed.
+
+```json
+{"event":"subscribed","message":"Subscribed to http://blah.com/test","domain":"http://blah.com","channel":"test","uid":"6441066c31e24e0b1a511980"}
+```
+
+5. The browser sends a message to a domain and channel.
+
+```json
+{ "event": "message", "domain": "http://blah.com", "channel": "test", "message": "Hello" }
+```
+
+6. The message is broadcast to all the subscribers to that domain and channel, but not to the browser that sent the message.
+
+```json
+{"_id":"64410697a61e3f1cc6d357e0","data":"Hello","timestamp":"2023-04-20T09:32:07.977Z","sender":"6441066c31e24e0b1a511980","domain":"http://blah.com","channel":"test","event":"message"}
+```
+
 ## Running
 
 ### Start the server
