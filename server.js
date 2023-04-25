@@ -52,12 +52,12 @@ export const server = {
         }
 
         /**
-         * An http callback that you can use to send a websocket event to a specific
+         * An http callback that you can use to broadcast a message to a specific
          * domain and channel.
          * 
          * Test: curl -X POST -d "domain=http://blah.com&channel=test&message=Hello" "http://localhost:3000/send"
          */
-        if ( '/send' === requestPath && [ 'POST', 'HEAD' ].includes( req.method ) ) {
+        if ( '/broadcast' === requestPath && [ 'POST', 'HEAD' ].includes( req.method ) ) {
             try {
                 let body = '';
                 req.on('data', chunk => {

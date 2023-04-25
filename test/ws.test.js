@@ -41,7 +41,7 @@ const sendMessageNewClient  = (data) => {
             const message = JSON.parse(raw);
             if (message.event === 'connected') {
                 console.log("Sending message", data);
-                websocket.send(JSON.stringify({event: "message", domain, channel, message: data }));
+                websocket.send(JSON.stringify({event: "broadcast", domain, channel, message: data }));
                 // websocket.close();
                 resolve();
             }
@@ -54,7 +54,7 @@ const awaitMessage = async (messages, data) => {
     return new Promise((resolve, reject) => {
         const interval = setInterval(() => {
             // console.log(messages);
-            const message = messages.find((message) => message.event === "message" && message.data === data);
+            const message = messages.find((message) => message.event === "broadcast" && message.data === data);
             if (message) {
                 clearInterval(interval);
                 resolve(message);

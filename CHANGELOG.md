@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## v0.1.0
+- Breaking change: Change `"event": "message"` to `"event": "broadcast"` for broadcasting a message (to allow for "message" to be a one-to-one message in the future)
+- Breaking change: Broadcast POST endpoint changed from `/send` to `/broadcast`
+- Improved documentation
+
 ## v0.0.3
 - Some Jest testing
 - Abstract the server into a class

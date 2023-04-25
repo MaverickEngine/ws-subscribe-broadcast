@@ -49,16 +49,16 @@ websocat "ws://localhost:3000/_ws/"
 {"event":"subscribed","message":"Subscribed to http://blah.com/test","domain":"http://blah.com","channel":"test","uid":"6441066c31e24e0b1a511980"}
 ```
 
-5. The browser sends a message to a domain and channel.
+5. The browser broadcasts a message to a domain and channel.
 
 ```json
-{ "event": "message", "domain": "http://blah.com", "channel": "test", "message": "Hello" }
+{ "event": "broadcast", "domain": "http://blah.com", "channel": "test", "message": "Hello" }
 ```
 
 6. The message is broadcast to all the subscribers to that domain and channel, but not to the browser that sent the message.
 
 ```json
-{"_id":"64410697a61e3f1cc6d357e0","data":"Hello","timestamp":"2023-04-20T09:32:07.977Z","sender":"6441066c31e24e0b1a511980","domain":"http://blah.com","channel":"test","event":"message"}
+{"_id":"64410697a61e3f1cc6d357e0","data":"Hello","timestamp":"2023-04-20T09:32:07.977Z","sender":"6441066c31e24e0b1a511980","domain":"http://blah.com","channel":"test","event":"broadcast"}
 ```
 
 ## Running
@@ -96,7 +96,7 @@ _Note: You can subscribe to multiple domains and channels at once._
 ### Send a broadcast
 
 ```javascript
-{ "event": "message", "domain": "http://blah.com", "channel": "test", "message": "blah" }
+{ "event": "broadcast", "domain": "http://blah.com", "channel": "test", "message": "blah" }
 ```
 
 ### Unsubscribe
@@ -105,12 +105,12 @@ _Note: You can subscribe to multiple domains and channels at once._
 { "event": "unsubscribe", "domain": "http://blah.com", "channel": "test" }
 ```
 
-## Send a message from outside a websocket
+## Broadcast a message from outside a websocket
 
-You can send a message to a domain and channel by sending a POST request to the server, using the endpoint `/send`.
+You can broadcast a message to a domain and channel by sending a POST request to the server, using the endpoint `/broadcast`.
 
 ```bash
-curl -X POST -d "domain=http://blah.com&channel=test&message=Hello" "http://localhost:3000/send"
+curl -X POST -d "domain=http://blah.com&channel=test&message=Hello" "http://localhost:3000/broadcast"
 ```
 
 ## Get historical messages

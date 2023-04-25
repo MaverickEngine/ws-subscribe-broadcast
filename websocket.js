@@ -49,6 +49,7 @@ export class FrontPageEngineSocketServer {
                         throw new Error('Invalid subscription');
                     }
                     socket.subscriptions.push({ domain: message.domain, channel: message.channel });
+					socket.send(JSON.stringify({ event: 'subscribed', domain: message.domain, channel: message.channel }));
                     console.log( `Subscribed to ${ message.channel } for ${ message.domain }` );
                 } else if (message.event === 'unsubscribe') {
                     if (!message.domain || !message.channel) {
@@ -57,9 +58,10 @@ export class FrontPageEngineSocketServer {
 					socket.subscriptions = socket.subscriptions.filter((subscription) => {
 						return subscription.domain !== message.domain || subscription.channel !== message.channel;
 					});
-                } else if (message.event === "message") {
+					socket.send(JSON.stringify({ event: 'unsubscribed', domain: message.domain, channel: message.channel }));
+                } else if (message.event === "broadcast") {
 					const messageObj = messages.add(message.domain, message.channel, message.message, socket.unique_id);
-					this.fireMessage(messageObj, socket.unique_id);
+					this.broadcastMessage(messageObj, socket.unique_id);
                 } else if (message.event === "get_since") {
 					console.log('get_since', message.domain, message.channel, message.since);
 					const messagesSince = messages.getSince(message.domain, message.channel, message.since);
@@ -132,7 +134,7 @@ export class FrontPageEngineSocketServer {
 		}
 	}
 
-	fireMessage(message) {
+	broadcastMessage(message) {
 		this.wss.clients.forEach((client) => {
 			if (client.readyState !== WebSocket.OPEN) return false;
 			if (!client.subscriptions) return false;
@@ -140,7 +142,7 @@ export class FrontPageEngineSocketServer {
 			if (!client.subscriptions.find((subscription) => {
 				return subscription.domain === message.domain && subscription.channel === message.channel;
 			})) return false;
-			message.event = 'message';
+			message.event = 'broadcast';
 			console.log(`Sending message to ${client.unique_id}...`);
 			client.send(JSON.stringify(message));
 		});
