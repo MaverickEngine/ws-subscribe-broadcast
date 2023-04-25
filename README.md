@@ -1,4 +1,4 @@
-# WS Subscribe Broadcast
+# WS-Subscribe-Broadcast
 
 This simple websocket server lets you subscribe to a domain and channel, and then lets you send and receive all broadcasts for that domain and channel. 
 
@@ -169,6 +169,58 @@ Get the latest message.
 
 ```javascript
 { "event": "get_latest", "domain": "http://blah.com", "channel": "test" }
+```
+
+## HTTP endpoints
+
+### GET /
+
+Displays this README.
+
+### UPGRADE /_ws/ or /socket.io/
+
+This is the websocket endpoint. You can connect to it using a websocket client.
+
+### GET /stats/
+
+Get basic stats
+
+```bash
+curl "http://localhost:3000/stats/"
+```
+
+```json
+{
+    "status": "ok",
+    "time_running": 102,
+    "sockets_open": 1,
+    "message_count": 4
+}
+```
+
+### POST /broadcast
+
+Broadcast a message to a domain and channel.
+
+```bash
+curl -X POST -d "domain=http://blah.com&channel=test&message=Hello" "http://localhost:3000/broadcast"
+```
+
+```json
+{
+    "event": "broadcast",
+    "data": {
+        "_id": "6447eb6e77fb1a221c1ad75e",
+        "data": "Hello",
+        "timestamp": "2023-04-25T15:02:06.744Z",
+        "sender": "::ffff:127.0.0.1",
+        "domain": "http://blah.com",
+        "channel": "test"
+    },
+    "domain": "http://blah.com",
+    "channel": "test",
+    "status": "ok"
+}
 ```
 
 ## Wordpress VIP

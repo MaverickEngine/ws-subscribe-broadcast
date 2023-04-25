@@ -130,6 +130,34 @@ export class Messages {
             return message._id === id && message.sender !== sender;
         });
     }
+
+    size(domain = null, channel = null) {
+        if (domain === null && channel === null) {
+            let size = 0;
+            for (const domain in this.channels) {
+                for (const channel in this.channels[domain]) {
+                    size += this.channels[domain][channel].length;
+                }
+            }
+            return size;
+        }
+        if (domain === null) {
+            return Object.keys(this.channels).length;
+        }
+        if (channel === null) {
+            return Object.keys(this.channels[domain]).length;
+        }
+        return this.channels[domain][channel].length;
+    }
+
+    domains() {
+        return Object.keys(this.channels);
+    }
+
+    channelsInDomain(domain) {
+        return Object.keys(this.channels[domain]);
+    }
+
 }
 
 export default new Messages();

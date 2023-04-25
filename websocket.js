@@ -44,59 +44,45 @@ export class FrontPageEngineSocketServer {
 					return;
 				}
                 const message = JSON.parse(s);
-                if (message.event === 'subscribe') {
-                    if (!message.domain || !message.channel) {
-                        throw new Error('Invalid subscription');
-                    }
-                    socket.subscriptions.push({ domain: message.domain, channel: message.channel });
-					socket.send(JSON.stringify({ event: 'subscribed', domain: message.domain, channel: message.channel }));
-                    console.log( `Subscribed to ${ message.channel } for ${ message.domain }` );
-                } else if (message.event === 'unsubscribe') {
-                    if (!message.domain || !message.channel) {
-						throw new Error('Invalid unsubscription');
-					}
-					socket.subscriptions = socket.subscriptions.filter((subscription) => {
-						return subscription.domain !== message.domain || subscription.channel !== message.channel;
-					});
-					socket.send(JSON.stringify({ event: 'unsubscribed', domain: message.domain, channel: message.channel }));
-                } else if (message.event === "broadcast") {
-					const messageObj = messages.add(message.domain, message.channel, message.message, socket.unique_id);
-					this.broadcastMessage(messageObj, socket.unique_id);
-                } else if (message.event === "get_since") {
-					console.log('get_since', message.domain, message.channel, message.since);
-					const messagesSince = messages.getSince(message.domain, message.channel, message.since);
-					messagesSince.forEach((messageObj) => {
-						socket.send(JSON.stringify(messageObj));
-					});
-				} else if (message.event === "get_since_date") {
-					console.log('get_since_date', message.domain, message.channel, message.since);
-					const messagesSince = messages.getSince(message.domain, message.channel, new Date(message.since).getTime());
-					messagesSince.forEach((messageObj) => {
-						socket.send(JSON.stringify(messageObj));
-					});
-				} else if (message.event === "get_since_id") {
-					console.log('get_since_id', message.domain, message.channel, message.id);
-					const messagesSince = messages.getSinceId(message.domain, message.channel, message.since_id);
-					messagesSince.forEach((messageObj) => {
-						socket.send(JSON.stringify(messageObj));
-					});
-				} else if (message.event === "get") {
-					console.log('get', message.domain, message.channel);
-					const messagesSince = messages.get(message.domain, message.channel);
-					messagesSince.forEach((messageObj) => {
-						socket.send(JSON.stringify(messageObj));
-					});
-				} else if (message.event === "get_by_id") {
-					const messagesSince = messages.getOne(message.domain, message.channel, message.id);
-					messagesSince.forEach((messageObj) => {
-						socket.send(JSON.stringify(messageObj));
-					});
-				} else if (message.event === "get_by_index") {
-					const messageObj = messages.getByIndex(message.domain, message.channel, message.index);
-					socket.send(JSON.stringify(messageObj));
-				} else if (message.event === "get_latest") {
-					const messageObj = messages.getLatest(message.domain, message.channel);
-					socket.send(JSON.stringify(messageObj));
+				if (!message.domain) {
+					throw new Error('Missing domain');
+				}
+				if (!message.channel) {
+					throw new Error('Missing channel');
+				}
+				switch (message.event) {
+					case "subscribe":
+						this.doSubscribe(socket, message);
+						break;
+					case "unsubscribe":
+						this.doUnsubscribe(socket, message);
+						break;
+					case "broadcast":
+						this.doBroadcast(socket, message);
+						break;
+					case "get_since":
+						this.doGetSince(socket, message);
+						break;
+					case "get_since_date":
+						this.doGetSinceDate(socket, message);
+						break;
+					case "get_since_id":
+						this.doGetSinceId(socket, message);
+						break;
+					case "get":
+						this.doGet(socket, message);
+						break;
+					case "get_by_id":
+						this.doGetById(socket, message);
+						break;
+					case "get_by_index":
+						this.doGetByIndex(socket, message);
+						break;
+					case "get_latest":
+						this.doGetLatest(socket, message);
+						break;
+					default:
+						break;
 				}
             } catch (err) {
                 console.log(err);
@@ -146,5 +132,81 @@ export class FrontPageEngineSocketServer {
 			console.log(`Sending message to ${client.unique_id}...`);
 			client.send(JSON.stringify(message));
 		});
+	}
+
+	doSubscribe(socket, message) {
+		socket.subscriptions.push({ domain: message.domain, channel: message.channel });
+		socket.send(JSON.stringify({ event: 'subscribed', domain: message.domain, channel: message.channel }));
+		console.log( `Subscribed to ${ message.channel } for ${ message.domain }` );
+	}
+
+	doUnsubscribe(socket, message) {
+		socket.subscriptions = socket.subscriptions.filter((subscription) => {
+			return subscription.domain !== message.domain || subscription.channel !== message.channel;
+		});
+		socket.send(JSON.stringify({ event: 'unsubscribed', domain: message.domain, channel: message.channel }));
+		console.log( `Unsubscribed from ${ message.channel } for ${ message.domain }` );
+	}
+
+	doBroadcast(socket, message) {
+		const messageObj = messages.add(message.domain, message.channel, message.message, socket.unique_id);
+		this.broadcastMessage(messageObj, socket.unique_id);
+		console.log( `Broadcasting to ${ message.channel } for ${ message.domain }` );
+	}
+
+	doGet(socket, message) {
+		console.log('get', message.domain, message.channel);
+		const messagesSince = messages.get(message.domain, message.channel);
+		messagesSince.forEach((messageObj) => {
+			socket.send(JSON.stringify(messageObj));
+		});
+	}
+
+	doGetSince(socket, message) {
+		const messagesSince = messages.getSince(message.domain, message.channel, message.since);
+		messagesSince.forEach((messageObj) => {
+			socket.send(JSON.stringify(messageObj));
+		});
+		console.log('get_since', message.domain, message.channel, message.since);
+	}
+
+	doGetSinceDate(socket, message) {
+		console.log('get_since_date', message.domain, message.channel, message.since);
+		const messagesSince = messages.getSince(message.domain, message.channel, new Date(message.since).getTime());
+		messagesSince.forEach((messageObj) => {
+			socket.send(JSON.stringify(messageObj));
+		});
+	}
+
+	doGetSinceId(socket, message) {
+		const messagesSince = messages.getSinceId(message.domain, message.channel, message.since_id);
+		messagesSince.forEach((messageObj) => {
+			socket.send(JSON.stringify(messageObj));
+		});
+		console.log('get_since_id', message.domain, message.channel, message.id);
+	}
+
+	doGetById(socket, message) {
+		const messagesSince = messages.getOne(message.domain, message.channel, message.id);
+		messagesSince.forEach((messageObj) => {
+			socket.send(JSON.stringify(messageObj));
+		});
+		console.log('get_by_id', message.domain, message.channel, message.id);
+	}
+
+	doGetByIndex(socket, message) {
+		const messageObj = messages.getByIndex(message.domain, message.channel, message.index);
+		socket.send(JSON.stringify(messageObj));
+		console.log('get_by_index', message.domain, message.channel, message.index);
+	}
+
+	doGetLatest(socket, message) {
+		const messageObj = messages.getLatest(message.domain, message.channel);
+		socket.send(JSON.stringify(messageObj));
+		console.log('get_latest', message.domain, message.channel);
+	}
+
+	size() {
+		return this.wss.clients.size;
 	}
 }

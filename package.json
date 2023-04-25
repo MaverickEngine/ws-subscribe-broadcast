@@ -1,6 +1,6 @@
 {
     "name": "@mavengine/ws-subscribe-broadcast",
-    "version": "0.1.0",
+    "version": "0.1.1",
     "description": "Simple websocket server lets you subscribe and broadcast",
     "main": "index.js",
     "scripts": {

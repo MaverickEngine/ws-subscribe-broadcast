@@ -2,9 +2,12 @@ import http from 'http';
 import { parse } from 'querystring';
 import { FrontPageEngineSocketServer } from './websocket.js';
 import messages from './messages.js';
+import fs from 'fs';
 
 // Create a single, shared WebSocket server.
 const socketServer = new FrontPageEngineSocketServer();
+const start_time = Date.now();
+const readme = fs.readFileSync('README.md', 'utf8');
 
 export const server = {
     sockets: new Set,
@@ -47,7 +50,7 @@ export const server = {
         console.log( `Request for ${ req.method } ${ requestPath }` );
         if ( '/' === requestPath && [ 'GET', 'HEAD' ].includes( req.method ) ) {
             res.writeHead( 200 );
-            res.end( 'Howdy!' );
+            res.end(readme);
             return;
         }
 
@@ -111,7 +114,17 @@ export const server = {
             res.writeHead( 200 );
             res.end( 'ok' );
             return;
-        } else {
+        } 
+        else if ( '/stats' === requestPath && [ 'GET' ].includes( req.method ) ) {
+            res.writeHead( 200 );
+            const time_running = Math.ceil((Date.now() - start_time) / 1000);
+            const sockets_open = socketServer.size();
+            const message_count = messages.size();
+            const response = JSON.stringify({ status: 'ok', time_running, sockets_open, message_count });
+            res.end( response );
+            return;
+        }
+        else {
             res.writeHead( 404 );
             res.end("Not found");
         }

@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## v0.1.1
+- Fix bug that was sending 404s on the `/broadcast` endpoint
+- Add a `/stats` endpoint for some basic stats
+- Document the HTTP endpoints
+- Show the readme if you hit the / endpoint
+
 ## v0.1.0
 - Breaking change: Change `"event": "message"` to `"event": "broadcast"` for broadcasting a message (to allow for "message" to be a one-to-one message in the future)
 - Breaking change: Broadcast POST endpoint changed from `/send` to `/broadcast`
