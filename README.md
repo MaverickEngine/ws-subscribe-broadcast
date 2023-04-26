@@ -177,7 +177,7 @@ Get the latest message.
 
 Displays this README.
 
-### UPGRADE /_ws/ or /socket.io/
+### UPGRADE /_ws or /socket.io or /ws or /websocket
 
 This is the websocket endpoint. You can connect to it using a websocket client.
 
