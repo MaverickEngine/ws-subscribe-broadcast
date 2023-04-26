@@ -148,7 +148,9 @@ export const server = {
         this.app.on( 'upgrade', ( req, socket, head ) => {
             const baseUrl = `http://${ req.headers.host }`;
             const { pathname: requestPath } = new URL( req.url, baseUrl );
-            if ( requestPath.startsWith( '/socket.io/' ) || requestPath.startsWith( '/_ws/' ) ) {
+            const requestPathParts = requestPath.split( '/' );
+            const valid_paths = ['_ws', "ws", 'socket.io', 'websocket'];
+            if ( valid_paths.includes( requestPathParts[1] ) ) {
                 socketServer.onConnectionUpgrade( req, socket, head );
                 return;
             }

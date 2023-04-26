@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## v0.1.2
+- Don't require trailing forwardslash
+- Add "websocket" and "ws" to "socket.io" and "_ws" as possible websocket endpoints
+
 ## v0.1.1
 - Fix bug that was sending 404s on the `/broadcast` endpoint
 - Add a `/stats` endpoint for some basic stats
