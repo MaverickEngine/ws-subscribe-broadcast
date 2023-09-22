@@ -20,7 +20,7 @@ export const server = {
                 resolve();
             } );
             this.app.on( 'error', ( err ) => {
-                console.error( err );
+                console.error( err.toString() );
                 reject( err );
             } );
         } );
@@ -36,7 +36,7 @@ export const server = {
         
           this.app.close( ( err ) => {
                 if ( err ) {
-                    console.error( err );
+                    console.error( err.toString() );
                     reject( err );
                 }
                 resolve();
@@ -84,7 +84,7 @@ export const server = {
                         res.end( response );
                         console.log(res);
                     } catch (err) {
-                        console.error(err);
+                        console.error(err.toString());
                         res.writeHead( 500 );
                         res.end( err.message || err );
                     }
