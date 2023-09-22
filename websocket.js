@@ -85,7 +85,7 @@ export class FrontPageEngineSocketServer {
 						break;
 				}
             } catch (err) {
-                console.log(err);
+                console.error(err.toString());
             }
         }).bind(this) );
 	}
