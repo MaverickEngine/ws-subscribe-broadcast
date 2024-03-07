@@ -34,7 +34,7 @@ export const server = {
                 this.sockets.delete(socket);
             }
         
-          this.app.close( ( err ) => {
+            this.app.close( ( err ) => {
                 if ( err ) {
                     console.error( err.toString() );
                     reject( err );
@@ -85,7 +85,7 @@ export const server = {
                     } catch (err) {
                         console.error(err.toString());
                         res.writeHead( 500 );
-                        res.end( err.message || err );
+                        res.end( err.message || err.toString() );
                     }
                 });
             } catch ( err ) {
@@ -159,9 +159,13 @@ export const server = {
 
         this.app.on('connection', (socket) => {
             this.sockets.add(socket);
-            this.app.once('close', () => {
+        });
+
+        this.app.on('close', () => {
+            for (const socket of this.sockets) {
+                socket.destroy();
                 this.sockets.delete(socket);
-            });
+            }
         });
     },
 };
