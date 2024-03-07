@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## v0.2.5
+- npx ws-subscribe-broadcast
+- Docker image
+
 ## v0.2.2
 - Some reliability changes
 - Change to node:lts-alpine

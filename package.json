@@ -1,12 +1,15 @@
 {
-    "name": "@mavengine/ws-subscribe-broadcast",
-    "version": "0.2.2",
+    "name": "ws-subscribe-broadcast",
+    "version": "0.2.5",
     "description": "Simple websocket server lets you subscribe and broadcast",
     "main": "index.js",
     "scripts": {
         "start": "node index.js",
         "dev": "nodemon index.js",
         "test": "jest --detectOpenHandles"
+    },
+    "bin": {
+        "ws-subscribe-broadcast": "./bin/ws-subscribe-broadcast"
     },
     "type": "module",
     "keywords": [
@@ -17,14 +20,16 @@
     ],
     "author": "Jason Norwood-Young <jason@10layer.com>",
     "license": "MIT",
+    "dependencies": {
+        "ws": "^8.16.0"
+    },
     "devDependencies": {
         "@babel/preset-env": "^7.21.4",
         "babel-jest": "^29.5.0",
         "jest": "^29.5.0",
         "mock-socket": "^9.2.1",
         "nodemon": "^2.0.20",
-        "ts-jest": "^29.1.0",
-        "ws": "^8.13.0"
+        "ts-jest": "^29.1.0"
     },
     "repository": "https://github.com/MaverickEngine/ws-subscribe-broadcast"
 }

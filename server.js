@@ -3,11 +3,14 @@ import { parse } from 'querystring';
 import { FrontPageEngineSocketServer } from './websocket.js';
 import messages from './messages.js';
 import fs from 'fs';
+import path from 'path';
 
 // Create a single, shared WebSocket server.
 const socketServer = new FrontPageEngineSocketServer();
 const start_time = Date.now();
-const readme = fs.readFileSync('README.md', 'utf8');
+const __dirname = path.dirname(new URL(import.meta.url).pathname);
+const readme_filename = path.join(__dirname, 'README.md');
+const readme = fs.readFileSync(readme_filename, 'utf8');
 
 export const server = {
     sockets: new Set,

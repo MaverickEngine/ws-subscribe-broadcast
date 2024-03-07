@@ -15,6 +15,18 @@ This Websocket Server was developed for a Daily Maverick Mavengine project that 
 - A server can also send a message for broadcast through a POST request.
 - There is limited history (currently 100 messages) that can be retrieved by a browser.
 
+## Usage
+
+Running on the command line:
+```bash
+npx ws-subscribe-broadcast
+```
+
+Running in Docker:
+```bash
+docker run -p 3000:3000 jasony/ws-subscribe-broadcast
+```
+
 ## Security
 
 *_The system is not secure. Anyone can subscribe to any domain and channel._*
