@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## v0.2.2
+- Some reliability changes
+- Change to node:lts-alpine
+- v0.2
+
 ## v0.1.2
 - Don't require trailing forwardslash
 - Add "websocket" and "ws" to "socket.io" and "_ws" as possible websocket endpoints
