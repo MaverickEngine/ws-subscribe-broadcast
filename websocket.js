@@ -101,7 +101,7 @@ export class FrontPageEngineSocketServer {
 	 * Handle any messages sent by connected clients.
 	 */
 	onMessage( message ) {
-        console.log(message.data);
+        // console.log(message.data);
 		console.log(`Received message from client: ${ message.toString() }`);
         // console.log(this.wss.clients);
 	}

@@ -82,7 +82,6 @@ export const server = {
                             'Content-Type': 'application/json',
                         });
                         res.end( response );
-                        console.log(res);
                     } catch (err) {
                         console.error(err.toString());
                         res.writeHead( 500 );
