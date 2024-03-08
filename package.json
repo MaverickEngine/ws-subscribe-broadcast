@@ -1,6 +1,6 @@
 {
     "name": "ws-subscribe-broadcast",
-    "version": "0.2.5",
+    "version": "0.2.6",
     "description": "Simple websocket server lets you subscribe and broadcast",
     "main": "index.js",
     "scripts": {
